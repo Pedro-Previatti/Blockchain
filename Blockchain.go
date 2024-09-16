@@ -10,12 +10,13 @@ import (
 
 // This struct represents a Block in the Blockchain
 type Block struct {
-	Index        int    `json:"index"`        // Position the Block is on the Blockchain
-	Timestamp    string `json:"Timestamp"`    // Time when the block was created
-	Data         struct {
-		Cpf  string `json:"cpf"`	  // The identifier of the voter
-		Vote int    `json:"vote"`	  // The identifier of the vote
-	} `json:"data"`         		  // Data stored on the block
+	Index     int    `json:"index"`     // Position the Block is on the Blockchain
+	Timestamp string `json:"timestamp"` // Time when the block was created
+	Data      struct {
+		ZipCode string `json:"zipCode"` // The identifier for location
+		Cpf     string `json:"cpf"`     // The identifier of the voter
+		Vote    int    `json:"vote"`    // The identifier of the
+	} `json:"data"` // Data stored on the block
 	PreviousHash string `json:"previousHash"` // Hash of the previous block
 	Hash         string `json:"hash"`         // Hash of the current block
 }
@@ -28,12 +29,12 @@ type Blockchain struct {
 // Function to generate a SHA256 hash of the block
 func (b *Block) generateHash() string {
 	hash := sha256.New()
-	hash.Write([]byte(fmt.Sprintf("%d%s%s%s%d", b.Index, b.PreviousHash, b.Timestamp, b.Data.Cpf, b.Data.Vote)))
+	hash.Write([]byte(fmt.Sprintf("%d%s%s%s%s%d", b.Index, b.PreviousHash, b.Timestamp, b.Data.Cpf, b.Data.Vote)))
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // NewBlock creates a Block
-func NewBlock(index int, cpf string, vote int, previousHash string) *Block {
+func NewBlock(index int, zipCode string, cpf string, vote int, previousHash string) *Block {
 	block := &Block{
 		Index:        index,
 		Timestamp:    time.Now().String(),
@@ -41,13 +42,14 @@ func NewBlock(index int, cpf string, vote int, previousHash string) *Block {
 	}
 	block.Data.Cpf = cpf
 	block.Data.Vote = vote
+	block.Data.ZipCode = zipCode
 	block.Hash = block.generateHash()
 	return block
 }
 
 // createGenesis creates the first block in the blockchain
 func (bc *Blockchain) createGenesis() Block {
-	return *NewBlock(0, "000.000.000-00", 0, "0")
+	return *NewBlock(0, "00000-000", "000.000.000-00", 0, "0")
 }
 
 // NewBlockchain creates a new blockchain with a genesis block
@@ -63,9 +65,9 @@ func (bc *Blockchain) getLatest() Block {
 }
 
 // function to add a new block to the chain
-func (bc *Blockchain) add(cpf string, vote int) {
+func (bc *Blockchain) add(zipCode string, cpf string, vote int) {
 	latestBlock := bc.getLatest()
-	newBlock := NewBlock(latestBlock.Index+1, cpf, vote, latestBlock.Hash)
+	newBlock := NewBlock(latestBlock.Index+1, zipCode, cpf, vote, latestBlock.Hash)
 	bc.Chain = append(bc.Chain, *newBlock)
 }
 
@@ -100,8 +102,8 @@ func (bc *Blockchain) toJSON() (string, error) {
 func main() {
 	blockchain := NewBlockchain()
 
-	blockchain.add("000.000.000-00", 22)
-	blockchain.add("000.000.000-01", 13)
+	blockchain.add("00000-000", "000.000.000-00", 22)
+	blockchain.add("00000-001", "000.000.000-01", 13)
 
 	jsonBlockchain, err := blockchain.toJSON()
 	if err != nil {
